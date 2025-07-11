@@ -3,7 +3,8 @@
 		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-123456789012",
 		"name": "LMS Portal API",
 		"description": "Complete API collection for Learning Management System Portal with role-based access control",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "lms-portal-api"
 	},
 	"auth": {
 		"type": "bearer",
@@ -264,6 +265,88 @@
 							]
 						},
 						"description": "Get details of a specific user"
+					}
+				},
+				{
+					"name": "Convert User to Teacher",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('User converted to teacher successfully', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": 1,\n    \"employee_id\": \"EMP001\",\n    \"department\": \"Mathematics\",\n    \"qualification\": \"M.Sc Mathematics\",\n    \"experience_years\": 5,\n    \"specialization\": \"Algebra and Calculus\",\n    \"hire_date\": \"2024-01-01\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/convert-to-teacher/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"convert-to-teacher",
+								""
+							]
+						},
+						"description": "Convert an existing user to a teacher (Admin only)"
+					}
+				},
+				{
+					"name": "Convert User to Student",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('User converted to student successfully', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": 1,\n    \"student_id\": \"STU001\",\n    \"roll_number\": \"2024001\",\n    \"class_id\": 1,\n    \"gender\": \"M\",\n    \"guardian_name\": \"John Doe Sr.\",\n    \"guardian_phone\": \"+1234567890\",\n    \"guardian_email\": \"guardian@example.com\",\n    \"emergency_contact\": \"+0987654321\",\n    \"admission_date\": \"2024-01-15\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/convert-to-student/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"convert-to-student",
+								""
+							]
+						},
+						"description": "Convert an existing user to a student (Admin only)"
 					}
 				}
 			]
