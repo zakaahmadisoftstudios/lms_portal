@@ -1,0 +1,1250 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-123456789012",
+		"name": "LMS Portal API",
+		"description": "Complete API collection for Learning Management System Portal with role-based access control",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"exec": [
+					"// Set base URL if not already set",
+					"if (!pm.variables.get('base_url')) {",
+					"    pm.variables.set('base_url', 'http://localhost:8000/api');",
+					"}"
+				],
+				"type": "text/javascript"
+			}
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"description": "Authentication related endpoints for JWT token management",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Login successful', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('access_token', response.access);",
+									"    pm.environment.set('refresh_token', response.refresh);",
+									"    ",
+									"    if (response.user) {",
+									"        pm.environment.set('user_id', response.user.id);",
+									"        pm.environment.set('user_role', response.user.role);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login",
+								""
+							]
+						},
+						"description": "Authenticate user and obtain JWT access and refresh tokens"
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Token refresh successful', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('access_token', response.access);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/refresh/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"refresh",
+								""
+							]
+						},
+						"description": "Refresh the access token using refresh token"
+					}
+				},
+				{
+					"name": "Register User (Admin Only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('User registration successful', function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"newuser\",\n    \"email\": \"newuser@example.com\",\n    \"first_name\": \"New\",\n    \"last_name\": \"User\",\n    \"password\": \"SecurePass123!\",\n    \"password_confirm\": \"SecurePass123!\",\n    \"role\": \"student\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register",
+								""
+							]
+						},
+						"description": "Register a new user (Admin only)"
+					}
+				}
+			]
+		},
+		{
+			"name": "Profile & Dashboard",
+			"description": "User profile and dashboard endpoints",
+			"item": [
+				{
+					"name": "Get Current User Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/profile/me/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile",
+								"me",
+								""
+							]
+						},
+						"description": "Get the current authenticated user's profile information"
+					}
+				},
+				{
+					"name": "Get Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/dashboard/stats/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"dashboard",
+								"stats",
+								""
+							]
+						},
+						"description": "Get role-based dashboard statistics"
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"description": "User management endpoints (Admin only)",
+			"item": [
+				{
+					"name": "List Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								""
+							]
+						},
+						"description": "List all users (Admin only)"
+					}
+				},
+				{
+					"name": "Get User Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/{{user_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"{{user_id}}",
+								""
+							]
+						},
+						"description": "Get details of a specific user"
+					}
+				}
+			]
+		},
+		{
+			"name": "Students",
+			"description": "Student management endpoints with role-based access",
+			"item": [
+				{
+					"name": "List Students",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/students/?page=1&page_size=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"students",
+								""
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "page_size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "List students (filtered by user role)"
+					}
+				},
+				{
+					"name": "Create Student",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"student_id\": \"STU001\",\n    \"roll_number\": \"2024001\",\n    \"class_id\": 1,\n    \"gender\": \"M\",\n    \"guardian_name\": \"John Doe Sr.\",\n    \"guardian_phone\": \"+1234567890\",\n    \"guardian_email\": \"guardian@example.com\",\n    \"emergency_contact\": \"+0987654321\",\n    \"admission_date\": \"2024-01-15\",\n    \"blood_group\": \"O+\",\n    \"medical_conditions\": \"None\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/students/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"students",
+								""
+							]
+						},
+						"description": "Create a new student record"
+					}
+				},
+				{
+					"name": "Get Student Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/students/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"students",
+								"1",
+								""
+							]
+						},
+						"description": "Get details of a specific student"
+					}
+				},
+				{
+					"name": "Update Student",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"student_id\": \"STU001\",\n    \"roll_number\": \"2024001\",\n    \"class_id\": 1,\n    \"gender\": \"M\",\n    \"guardian_name\": \"John Doe Sr.\",\n    \"guardian_phone\": \"+1234567890\",\n    \"guardian_email\": \"guardian@example.com\",\n    \"emergency_contact\": \"+0987654321\",\n    \"admission_date\": \"2024-01-15\",\n    \"blood_group\": \"O+\",\n    \"medical_conditions\": \"Allergic to peanuts\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/students/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"students",
+								"1",
+								""
+							]
+						},
+						"description": "Update a student record completely"
+					}
+				},
+				{
+					"name": "Partial Update Student",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"guardian_phone\": \"+1111111111\",\n    \"medical_conditions\": \"Allergic to peanuts and shellfish\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/students/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"students",
+								"1",
+								""
+							]
+						},
+						"description": "Partially update a student record"
+					}
+				},
+				{
+					"name": "Delete Student",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/students/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"students",
+								"1",
+								""
+							]
+						},
+						"description": "Delete a student record"
+					}
+				}
+			]
+		},
+		{
+			"name": "Teachers",
+			"description": "Teacher management endpoints",
+			"item": [
+				{
+					"name": "List Teachers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/teachers/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"teachers",
+								""
+							]
+						},
+						"description": "List all teachers"
+					}
+				},
+				{
+					"name": "Create Teacher",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"employee_id\": \"EMP001\",\n    \"department\": \"Mathematics\",\n    \"qualification\": \"M.Sc Mathematics\",\n    \"experience_years\": 5,\n    \"specialization\": \"Algebra and Calculus\",\n    \"subject_ids\": [1, 2],\n    \"hire_date\": \"2024-01-01\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/teachers/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"teachers",
+								""
+							]
+						},
+						"description": "Create a new teacher record"
+					}
+				},
+				{
+					"name": "Get Teacher Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/teachers/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"teachers",
+								"1",
+								""
+							]
+						},
+						"description": "Get details of a specific teacher"
+					}
+				},
+				{
+					"name": "Get Teacher Classes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/teachers/1/classes/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"teachers",
+								"1",
+								"classes",
+								""
+							]
+						},
+						"description": "Get classes taught by a specific teacher"
+					}
+				},
+				{
+					"name": "Get Teacher Students",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/teachers/1/students/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"teachers",
+								"1",
+								"students",
+								""
+							]
+						},
+						"description": "Get students taught by a specific teacher"
+					}
+				},
+				{
+					"name": "Update Teacher",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"employee_id\": \"EMP001\",\n    \"department\": \"Mathematics\",\n    \"qualification\": \"Ph.D Mathematics\",\n    \"experience_years\": 6,\n    \"specialization\": \"Advanced Algebra and Calculus\",\n    \"subject_ids\": [1, 2, 3],\n    \"hire_date\": \"2024-01-01\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/teachers/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"teachers",
+								"1",
+								""
+							]
+						},
+						"description": "Update a teacher record"
+					}
+				},
+				{
+					"name": "Delete Teacher",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/teachers/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"teachers",
+								"1",
+								""
+							]
+						},
+						"description": "Delete a teacher record"
+					}
+				}
+			]
+		},
+		{
+			"name": "Classes",
+			"description": "Class management endpoints with role-based access",
+			"item": [
+				{
+					"name": "List Classes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/classes/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes",
+								""
+							]
+						},
+						"description": "List classes (filtered by user role)"
+					}
+				},
+				{
+					"name": "Create Class",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Grade 10-A\",\n    \"grade_level\": 10,\n    \"section\": \"A\",\n    \"academic_year\": \"2024-2025\",\n    \"teacher_id\": 1,\n    \"subject_ids\": [1, 2, 3],\n    \"room_number\": \"101\",\n    \"max_students\": 30\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/classes/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes",
+								""
+							]
+						},
+						"description": "Create a new class"
+					}
+				},
+				{
+					"name": "Get Class Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/classes/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes",
+								"1",
+								""
+							]
+						},
+						"description": "Get details of a specific class"
+					}
+				},
+				{
+					"name": "Update Class",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Grade 10-A Advanced\",\n    \"grade_level\": 10,\n    \"section\": \"A\",\n    \"academic_year\": \"2024-2025\",\n    \"teacher_id\": 1,\n    \"subject_ids\": [1, 2, 3, 4],\n    \"room_number\": \"101\",\n    \"max_students\": 35\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/classes/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes",
+								"1",
+								""
+							]
+						},
+						"description": "Update a class record"
+					}
+				},
+				{
+					"name": "Delete Class",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/classes/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes",
+								"1",
+								""
+							]
+						},
+						"description": "Delete a class"
+					}
+				}
+			]
+		},
+		{
+			"name": "Subjects",
+			"description": "Subject management endpoints",
+			"item": [
+				{
+					"name": "List Subjects",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/subjects/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"subjects",
+								""
+							]
+						},
+						"description": "List all subjects"
+					}
+				},
+				{
+					"name": "Create Subject (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Mathematics\",\n    \"code\": \"MATH101\",\n    \"description\": \"Basic Mathematics for Grade 10\",\n    \"credits\": 4\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/subjects/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"subjects",
+								""
+							]
+						},
+						"description": "Create a new subject (Admin only)"
+					}
+				},
+				{
+					"name": "Get Subject Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/subjects/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"subjects",
+								"1",
+								""
+							]
+						},
+						"description": "Get details of a specific subject"
+					}
+				},
+				{
+					"name": "Update Subject (Admin Only)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Advanced Mathematics\",\n    \"code\": \"MATH101\",\n    \"description\": \"Advanced Mathematics for Grade 10\",\n    \"credits\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/subjects/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"subjects",
+								"1",
+								""
+							]
+						},
+						"description": "Update a subject (Admin only)"
+					}
+				},
+				{
+					"name": "Delete Subject (Admin Only)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/subjects/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"subjects",
+								"1",
+								""
+							]
+						},
+						"description": "Delete a subject (Admin only)"
+					}
+				}
+			]
+		},
+		{
+			"name": "Assignments",
+			"description": "Assignment management endpoints with role-based access",
+			"item": [
+				{
+					"name": "List Assignments",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/assignments/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"assignments",
+								""
+							]
+						},
+						"description": "List assignments (filtered by user role)"
+					}
+				},
+				{
+					"name": "Create Assignment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Quadratic Equations Test\",\n    \"description\": \"Test on solving quadratic equations using various methods\",\n    \"subject_id\": 1,\n    \"class_id\": 1,\n    \"assignment_type\": \"test\",\n    \"total_marks\": 100,\n    \"due_date\": \"2024-03-15T10:00:00Z\",\n    \"instructions\": \"Answer all questions. Show your work for partial credit.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/assignments/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"assignments",
+								""
+							]
+						},
+						"description": "Create a new assignment"
+					}
+				},
+				{
+					"name": "Get Assignment Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/assignments/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"assignments",
+								"1",
+								""
+							]
+						},
+						"description": "Get details of a specific assignment"
+					}
+				},
+				{
+					"name": "Update Assignment",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Quadratic Equations Test - Extended\",\n    \"description\": \"Extended test on solving quadratic equations using various methods\",\n    \"subject_id\": 1,\n    \"class_id\": 1,\n    \"assignment_type\": \"test\",\n    \"total_marks\": 120,\n    \"due_date\": \"2024-03-20T10:00:00Z\",\n    \"instructions\": \"Answer all questions. Show your work for partial credit. Extra credit questions included.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/assignments/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"assignments",
+								"1",
+								""
+							]
+						},
+						"description": "Update an assignment"
+					}
+				},
+				{
+					"name": "Delete Assignment",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/assignments/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"assignments",
+								"1",
+								""
+							]
+						},
+						"description": "Delete an assignment"
+					}
+				}
+			]
+		},
+		{
+			"name": "Grades",
+			"description": "Grade management endpoints with role-based access",
+			"item": [
+				{
+					"name": "List Grades",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/grades/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"grades",
+								""
+							]
+						},
+						"description": "List grades (filtered by user role)"
+					}
+				},
+				{
+					"name": "Create Grade",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"student_id\": 1,\n    \"assignment_id\": 1,\n    \"marks_obtained\": 85,\n    \"comments\": \"Good work on algebraic methods. Need improvement in graphical solutions.\",\n    \"submitted_date\": \"2024-03-14T09:30:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/grades/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"grades",
+								""
+							]
+						},
+						"description": "Create a new grade record"
+					}
+				},
+				{
+					"name": "Get Grade Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/grades/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"grades",
+								"1",
+								""
+							]
+						},
+						"description": "Get details of a specific grade"
+					}
+				},
+				{
+					"name": "Update Grade",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"student_id\": 1,\n    \"assignment_id\": 1,\n    \"marks_obtained\": 90,\n    \"comments\": \"Excellent work on algebraic methods. Significant improvement in graphical solutions.\",\n    \"submitted_date\": \"2024-03-14T09:30:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/grades/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"grades",
+								"1",
+								""
+							]
+						},
+						"description": "Update a grade record"
+					}
+				},
+				{
+					"name": "Delete Grade",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/grades/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"grades",
+								"1",
+								""
+							]
+						},
+						"description": "Delete a grade record"
+					}
+				}
+			]
+		},
+		{
+			"name": "Attendance",
+			"description": "Attendance management endpoints with role-based access",
+			"item": [
+				{
+					"name": "List Attendance",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/attendance/?date=2024-03-15",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"attendance",
+								""
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "2024-03-15"
+								}
+							]
+						},
+						"description": "List attendance records (filtered by user role)"
+					}
+				},
+				{
+					"name": "Create Attendance Record",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"student_id\": 1,\n    \"class_id\": 1,\n    \"subject_id\": 1,\n    \"date\": \"2024-03-15\",\n    \"status\": \"present\",\n    \"notes\": \"On time and attentive\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/attendance/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"attendance",
+								""
+							]
+						},
+						"description": "Create a new attendance record"
+					}
+				},
+				{
+					"name": "Get Attendance Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/attendance/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"attendance",
+								"1",
+								""
+							]
+						},
+						"description": "Get details of a specific attendance record"
+					}
+				},
+				{
+					"name": "Update Attendance",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"student_id\": 1,\n    \"class_id\": 1,\n    \"subject_id\": 1,\n    \"date\": \"2024-03-15\",\n    \"status\": \"late\",\n    \"notes\": \"Arrived 10 minutes late but participated well\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/attendance/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"attendance",
+								"1",
+								""
+							]
+						},
+						"description": "Update an attendance record"
+					}
+				},
+				{
+					"name": "Delete Attendance",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/attendance/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"attendance",
+								"1",
+								""
+							]
+						},
+						"description": "Delete an attendance record"
+					}
+				}
+			]
+		},
+		{
+			"name": "System",
+			"description": "System and utility endpoints",
+			"item": [
+				{
+					"name": "API Root",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Get API root with endpoint listing"
+					}
+				},
+				{
+					"name": "API Endpoints Documentation",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/endpoints/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"endpoints",
+								""
+							]
+						},
+						"description": "Get complete endpoint documentation"
+					}
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health",
+								""
+							]
+						},
+						"description": "Check API health status"
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		}
+	]
+} 
